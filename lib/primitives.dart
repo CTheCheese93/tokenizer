@@ -1,8 +1,14 @@
 class TokenType {
-  String type;
+  String _type = "";
+
+  String get type => _type;
+
+  set type(String type) {
+    _type = type.toUpperCase();
+  }
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(type, type);
   
   @override
   operator ==(other){
@@ -10,7 +16,9 @@ class TokenType {
       ? true : false;
   }
 
-  TokenType(this.type);
+  TokenType(String s) {
+    type = s;
+  }
 }
 
 class Token {
@@ -20,55 +28,55 @@ class Token {
   Token(this.type, this.value);
 }
 
-class TypeChart {
-  Map<dynamic, TokenType> typeChart = {};
-  Map<TokenType, List<dynamic>> tokenTypeAssociations = {};
+// class TypeChart {
+//   Map<dynamic, TokenType> typeChart = {};
+//   Map<TokenType, List<dynamic>> tokenTypeAssociations = {};
 
-  void loadTypeChart(
-    Map<dynamic, TokenType> newTypeChart,
-    Map<TokenType, List<dynamic>> newTokenTypeAssociations,
-    {bool replace = false}){
+//   void loadTypeChart(
+//     Map<dynamic, TokenType> newTypeChart,
+//     Map<TokenType, List<dynamic>> newTokenTypeAssociations,
+//     {bool replace = false}){
     
-    if (typeChart.isNotEmpty && replace == false) {
-      throw "TypeChart not empty";
-    } else {
-      typeChart = newTypeChart;
-      tokenTypeAssociations = newTokenTypeAssociations;
-    }
-  }
+//     if (typeChart.isNotEmpty && replace == false) {
+//       throw "TypeChart not empty";
+//     } else {
+//       typeChart = newTypeChart;
+//       tokenTypeAssociations = newTokenTypeAssociations;
+//     }
+//   }
 
-  void _addTokenTypeAssociationWithCharCode(TokenType tokenType, int charCode){
-    tokenTypeAssociations[tokenType] == null
-      ? tokenTypeAssociations[tokenType] = [charCode]
-      : tokenTypeAssociations[tokenType]!.add(charCode);
-  }
+//   void _addTokenTypeAssociationWithCharCode(TokenType tokenType, int charCode){
+//     tokenTypeAssociations[tokenType] == null
+//       ? tokenTypeAssociations[tokenType] = [charCode]
+//       : tokenTypeAssociations[tokenType]!.add(charCode);
+//   }
 
-  void _addTokenTypeAssociation(TokenType tokenType, dynamic value){
-    tokenTypeAssociations[tokenType] == null
-      ? tokenTypeAssociations[tokenType] = [value]
-      : tokenTypeAssociations[tokenType]!.add(value);
-  }
+//   void _addTokenTypeAssociation(TokenType tokenType, dynamic value){
+//     tokenTypeAssociations[tokenType] == null
+//       ? tokenTypeAssociations[tokenType] = [value]
+//       : tokenTypeAssociations[tokenType]!.add(value);
+//   }
 
-  void _addTokenTypeAssocationWithTokenType(TokenType tokenType) {
-    tokenTypeAssociations[tokenType] == null
-      ? tokenTypeAssociations[tokenType] = [tokenType]
-      : tokenTypeAssociations[tokenType]!.add(tokenType);
-  }
+//   void _addTokenTypeAssocationWithTokenType(TokenType tokenType) {
+//     tokenTypeAssociations[tokenType] == null
+//       ? tokenTypeAssociations[tokenType] = [tokenType]
+//       : tokenTypeAssociations[tokenType]!.add(tokenType);
+//   }
 
-  /// Standard way to map given value to TokenType
-  void mapTokenType(TokenType tokenType, dynamic value) {
-    typeChart[value] = tokenType;
-    _addTokenTypeAssociation(tokenType, value);
-  }
+//   /// Standard way to map given value to TokenType
+//   void mapTokenType(TokenType tokenType, dynamic value) {
+//     typeChart[value] = tokenType;
+//     _addTokenTypeAssociation(tokenType, value);
+//   }
 
-  void mapTokenTypeToCharCode(TokenType tokenType, int charCode) {
-    typeChart[charCode] = tokenType;
-    _addTokenTypeAssociationWithCharCode(tokenType, charCode);
-  }
+//   void mapTokenTypeToCharCode(TokenType tokenType, int charCode) {
+//     typeChart[charCode] = tokenType;
+//     _addTokenTypeAssociationWithCharCode(tokenType, charCode);
+//   }
 
-  // Adds TokenType to TypeChart
-  void addTokenType(TokenType tokenType) {
-    typeChart[tokenType.type] = tokenType;
-    _addTokenTypeAssocationWithTokenType(tokenType);
-  }
-}
+//   // Adds TokenType to TypeChart
+//   void addTokenType(TokenType tokenType) {
+//     typeChart[tokenType.type] = tokenType;
+//     _addTokenTypeAssocationWithTokenType(tokenType);
+//   }
+// }

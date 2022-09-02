@@ -4,10 +4,9 @@ import 'package:tokenizer/handlers.dart';
 abstract class Tokenizer {
   ContentHandler contentHandler = ContentHandler();
   TokenHandler tokenHandler;
-  TypeChart typeChart;
-  TypeHandler typeHandler;
+  TokenTypeHandler tokenTypeHandler;
 
   List<Token> tokenize(String content);
 
-  Tokenizer(this.typeChart, this.typeHandler, this.tokenHandler);
+  Tokenizer(this.tokenTypeHandler, this.tokenHandler);
 }

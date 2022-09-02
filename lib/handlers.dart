@@ -6,50 +6,26 @@ import 'package:tokenizer/exceptions.dart';
 //
 
 class TokenTypeHandler {
-  Map<String, TokenType> tokenTypes;
+  Map<TokenType, Function> _tthChart;
 
-  // TODO: Test this
-  bool tokenTypeExists(String type) {
-    return tokenTypes.containsKey(type.toUpperCase());
+  bool tokenTypeExists(TokenType tokenType) {
+    return _tthChart.containsKey(tokenType);
   }
 
-  TokenType getTokenType(String type) {
-    type = type.toUpperCase();
-
-    if (tokenTypeExists(type)) {
-      return tokenTypes[type]!;
-    } else {
-      // TODO: Make this an exception
-      throw "TokenType of $type doesn't exist!";
-    }
-  }
-
-  /// Creates a new TokenType and adds it to TokenTypeHandler.tokenTypes
-  TokenType createAndAddTokenType(String type) {
-    type = type.toUpperCase();
-
-    if (tokenTypes[type] == null) {
-      tokenTypes[type] = TokenType(type);
-    } else {
-      throw DuplicateTokenTypeException("Cannot create TokenType '$type' as it already exists!");
+  bool mapTokenTypeToFunction(TokenType tokenType, Function fn, {replace = false}) {
+    if (tokenTypeExists(tokenType) && replace == false) {
+      return false;
     }
 
-    return tokenTypes[type]!;
+    _tthChart[tokenType] = fn;
+    return true;
   }
 
-  TokenType addTokenType(TokenType tokenType) {
-    String type = tokenType.type.toUpperCase();
-
-    if (tokenTypes[type] == null) {
-      tokenTypes[type] = tokenType;
-    } else {
-      throw DuplicateTokenTypeException("Cannot add TokenType '$type' as it already exists!");
-    }
-
-    return tokenTypes[type]!;
+  Function? tokenFunction(TokenType tokenType){
+      return _tthChart[tokenType];
   }
 
-  TokenTypeHandler(this.tokenTypes);
+  TokenTypeHandler(this._tthChart);
 }
 
 //
@@ -185,28 +161,4 @@ class ContentHandler {
   }
 
   ContentHandler({this.content = "", this.index = 0, this.row = 0, this.col = 0});
-}
-
-//
-// Type Handler
-//
-
-class TypeHandler {
-  // <TokenType, Function>
-  Map<TokenType, Function> typeHandlerChart;
-
-  bool addHandlerFunction(TokenType? tokenType, Function fn, {bool replace = false}) {
-    if(tokenType == null) {
-      return false;
-    }
-
-    if (typeHandlerChart[tokenType] == null || replace) {
-      typeHandlerChart[tokenType] = fn;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  TypeHandler(this.typeHandlerChart);
 }

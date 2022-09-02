@@ -11,10 +11,7 @@ class AlphaTokenizer implements Tokenizer {
   TokenHandler tokenHandler = TokenHandler([]);
   
   @override
-  TypeChart typeChart = TypeChart();
-  
-  @override
-  TypeHandler typeHandler = TypeHandler({});
+  TokenTypeHandler tokenTypeHandler = TokenTypeHandler({});
 
   @override
   List<Token> tokenize(String content) {
@@ -23,11 +20,9 @@ class AlphaTokenizer implements Tokenizer {
     while(true) {
       try {
         String lookahead = contentHandler.lookahead();
-        TokenType? lookaheadTokenType = typeChart.typeChart[lookahead];
+        Function? fnToCall = tokenTypeHandler.tokenFunction(TokenType(lookahead));
 
-        typeHandler.typeHandlerChart[lookaheadTokenType] != null
-          ? typeHandler.typeHandlerChart[lookaheadTokenType]!(contentHandler, typeChart, typeHandler, tokenHandler)
-          : throw "TokenType for $lookahead does not exist in TypeChart";
+        return fnToCall == null ? throw "TokenType for $lookahead does not exist in TypeChart" : fnToCall();
       } on RangeError {
         break;
       }
@@ -36,32 +31,32 @@ class AlphaTokenizer implements Tokenizer {
     return tokenHandler.tokens;
   }
 
-  AlphaTokenizer(this.contentHandler, this.typeChart, this.typeHandler, this.tokenHandler);
+  AlphaTokenizer(this.contentHandler, this.tokenTypeHandler, this.tokenHandler);
 
 }
 
 void main() {
-  TypeChart alphaTypeChart = TypeChart();
-  TypeHandler alphaTypeHandler = TypeHandler({});
-  TokenTypeHandler alphaTokenTypeHandler = TokenTypeHandler({});
-  TokenHandler alphaTokenHandler = TokenHandler([]);
-  ContentHandler alphaContentHandler = ContentHandler();
+  // TypeChart alphaTypeChart = TypeChart();
+  // TypeHandler alphaTypeHandler = TypeHandler({});
+  // TokenTypeHandler alphaTokenTypeHandler = TokenTypeHandler({});
+  // TokenHandler alphaTokenHandler = TokenHandler([]);
+  // ContentHandler alphaContentHandler = ContentHandler();
 
-  alphaTokenTypeHandler.addTokenType(TokenType("WORD"));
-  alphaTokenTypeHandler.addTokenType(TokenType("EXPRESSION"));
-  alphaTokenTypeHandler.addTokenType(TokenType("LINK"));
+  // alphaTokenTypeHandler.addTokenType(TokenType("WORD"));
+  // alphaTokenTypeHandler.addTokenType(TokenType("EXPRESSION"));
+  // alphaTokenTypeHandler.addTokenType(TokenType("LINK"));
 
-  alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["WORD"], () {
+  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["WORD"], () {
 
-  });
+  // });
 
-  alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["EXPRESSION"], () {
+  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["EXPRESSION"], () {
 
-  });
+  // });
 
-  alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["LINK"], () {
+  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["LINK"], () {
 
-  });
+  // });
   
-  AlphaTokenizer alphaTokenizer = AlphaTokenizer(alphaContentHandler, alphaTypeChart, alphaTypeHandler, alphaTokenHandler);
+  // AlphaTokenizer alphaTokenizer = AlphaTokenizer(alphaContentHandler, alphaTypeChart, alphaTypeHandler, alphaTokenHandler);
 }

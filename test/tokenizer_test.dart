@@ -7,65 +7,80 @@ import 'package:tokenizer/util.dart';
 
 void main() {
 
-  group('TokenType & Handler', () {
-    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({});
-    TokenType charTokenType = TokenType("CHAR");
+  group('TokenTypeHandler', () {
+    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({
+      TokenType("TEST"): (){}
+    });
   
     test('Can create TokenType of type CHAR', () {
-      expect(charTokenType.type, equals('CHAR'));
+      expect(TokenType("char").type, equals('CHAR'));
+    });
+
+    test('TokenType created as "cHaR" comes out "CHAR"', () {
+      expect(TokenType("ChAr").type, equals("CHAR"));
     });
 
     test('TokenType matches based on string, case insensitive.', () {
       expect(TokenType("Char"), equals(TokenType("CHAR")));
     });
 
-    test('Can add TokenTypes to TokenHandler', () {
-      tokenTypeHandler.addTokenType(charTokenType);
-
-      expect(tokenTypeHandler.tokenTypes["CHAR"], equals(charTokenType));
+    test('Can successfully identify if TokenType exists as key', () {
+      expect(tokenTypeHandler.tokenTypeExists(TokenType("TEST")), equals(true));
     });
 
-    test('Can create & add TokenTypes with TokenHandler', () {
-      TokenType wordTokenType = tokenTypeHandler.createAndAddTokenType("WORD");
+    test('Can map TokenTypes to functions', () {
+      tokenTypeHandler.mapTokenTypeToFunction(TokenType("ADD"), (int x, int y) { return x + y;});
 
-      expect(tokenTypeHandler.tokenTypes["WORD"], equals(wordTokenType));
+      expect(tokenTypeHandler.tokenFunction(TokenType("ADD")), isA<Function>());
     });
 
-    test('Throws DuplicateTokenTypeException on creating & adding TokenTypes with TokenHandler that already exist', () {
+    test('Returns false when TokenType already has an existing mapping', () {
+      tokenTypeHandler.mapTokenTypeToFunction(TokenType("Token"), (int x, int y) {
+        return x + y;
+      });
+
+      expect(tokenTypeHandler.tokenFunction(TokenType("Token"))!(1,1), equals(2));
+
       expect(
-        () => tokenTypeHandler.createAndAddTokenType("WORD"),
-        throwsA(isA<DuplicateTokenTypeException>())
+        tokenTypeHandler.mapTokenTypeToFunction(TokenType("Token"), (int x, int y) { return x * y; }),
+        equals(false) // throwsA(isA<DuplicateTokenTypeException>())
       );
     });
 
-    test('Throws DuplicateTokenTypeException on adding TokenType with same type already existing', () {
-      TokenType duplicateWordTokenType = TokenType("WORD");
+    test('Returns true when TokenType already has an existing mapping and replace is set to true', () {
+      // Setting initial mapping
+      tokenTypeHandler.mapTokenTypeToFunction(TokenType("Token"), (int x, int y) {
+        return x + y;
+      });
 
-        expect(
-          () => tokenTypeHandler.addTokenType(duplicateWordTokenType),
-          throwsA(isA<DuplicateTokenTypeException>())
-        );
+      // Confirming mapping works as intended
+      expect(tokenTypeHandler.tokenFunction(TokenType("Token"))!(1,1), equals(2));
+
+      // Attemping to replace mapping
+      tokenTypeHandler.mapTokenTypeToFunction(TokenType("Token"), (int x, int y) { return x * y; }, replace: true);
+
+      // Confirming replacement worked
+      expect(
+        tokenTypeHandler.tokenFunction(TokenType("Token"))!(1,1),
+        equals(1) // throwsA(isA<DuplicateTokenTypeException>())
+      );
     });
   });
 
 
   group('Token & TokenHandler', () {
-    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({
-      "CHAR": TokenType("CHAR"),
-      "WORD": TokenType("WORD")
-    });
-    Map<String, TokenType> tokenTypes = tokenTypeHandler.tokenTypes;
+    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({});
     TokenHandler tokenHandler = TokenHandler([]);
 
     test("Can create a Token with type WORD with value of 'ABC'", () {
-      Token token = createToken("WORD", "ABC", tokenTypeHandler);
+      Token token = createToken(TokenType("WORD"), "ABC", tokenTypeHandler);
       expect(token, predicate((Token e) {
-        return e.type == tokenTypes["WORD"] && e.value == "ABC";
+        return e.type == TokenType("WORD") && e.value == "ABC";
       }, 'Token is of correct type and value'));
     });
 
     test("Can add token to TokenHandler", () {
-      Token token = createToken("WORD", "ABC", tokenTypeHandler);
+      Token token = createToken(TokenType("WORD"), "ABC", tokenTypeHandler);
       tokenHandler.addToken(token);
 
       expect(tokenHandler.tokens[0], equals(token));
@@ -73,7 +88,7 @@ void main() {
 
     test("Can clear tokens from TokenHandler", () {
       if (tokenHandler.tokens.isEmpty) {
-        Token token = createToken("CHAR", "A", tokenTypeHandler);
+        Token token = createToken(TokenType("CHAR"), "A", tokenTypeHandler);
 
         tokenHandler.addToken(token);
       }
@@ -86,8 +101,8 @@ void main() {
     test("Can add multiple tokens to TokenHandler", () {
       tokenHandler.clearTokens(confirm: true);
 
-      Token tokenA = createToken("CHAR", "A", tokenTypeHandler);
-      Token tokenB = createToken("CHAR", "B", tokenTypeHandler);
+      Token tokenA = createToken(TokenType("CHAR"), "A", tokenTypeHandler);
+      Token tokenB = createToken(TokenType("CHAR"), "B", tokenTypeHandler);
 
       tokenHandler.addTokens([tokenA, tokenB]);
 
@@ -97,9 +112,9 @@ void main() {
     void buildABCTokenList() {
       tokenHandler.clearTokens(confirm: true);
 
-      Token tokenA = createToken("CHAR", "A", tokenTypeHandler);
-      Token tokenB = createToken("CHAR", "B", tokenTypeHandler);
-      Token tokenC = createToken("CHAR", "C", tokenTypeHandler);
+      Token tokenA = createToken(TokenType("CHAR"), "A", tokenTypeHandler);
+      Token tokenB = createToken(TokenType("CHAR"), "B", tokenTypeHandler);
+      Token tokenC = createToken(TokenType("CHAR"), "C", tokenTypeHandler);
 
       tokenHandler.addTokens([tokenA, tokenB, tokenC]);
     }
@@ -136,24 +151,6 @@ void main() {
           e[1].value == "B" &&
           e[2].value == "C" && tokenHandler.tokenPosition == 3;
       }));
-    });
-  });
-
-  group("TypeChart", () {
-    TypeChart typeChart = TypeChart();
-    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({
-      "CHAR": TokenType("CHAR"),
-      "WORD": TokenType("WORD"),
-      "NUM":  TokenType("NUM")
-    });
-
-    test("Can load single type into TypeChart", () {
-      // TODO: Rewrite TokenTypeHandler.tokenTypes to not require ! on this end.
-      // TODO: Rewrite TokenTypeHandler to remove direct access to tokenTypes.
-      typeChart.mapTokenType(tokenTypeHandler.tokenTypes["CHAR"]!, "A");
-
-      // TODO: Rewrite TypeChart to remove direct access to typeChart ( getTypeFor(String value) ?)
-      expect(typeChart.typeChart["A"], equals(tokenTypeHandler.tokenTypes["CHAR"]));
     });
   });
 
