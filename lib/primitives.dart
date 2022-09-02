@@ -1,6 +1,15 @@
 class TokenType {
   String type;
 
+  @override
+  int get hashCode => super.hashCode;
+  
+  @override
+  operator ==(other){
+    return type.toUpperCase() == (other as TokenType).type.toUpperCase()
+      ? true : false;
+  }
+
   TokenType(this.type);
 }
 

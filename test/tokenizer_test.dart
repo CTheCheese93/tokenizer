@@ -15,6 +15,10 @@ void main() {
       expect(charTokenType.type, equals('CHAR'));
     });
 
+    test('TokenType matches based on string, case insensitive.', () {
+      expect(TokenType("Char"), equals(TokenType("CHAR")));
+    });
+
     test('Can add TokenTypes to TokenHandler', () {
       tokenTypeHandler.addTokenType(charTokenType);
 

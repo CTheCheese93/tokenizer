@@ -8,7 +8,7 @@ import 'package:tokenizer/exceptions.dart';
 class TokenTypeHandler {
   Map<String, TokenType> tokenTypes;
 
-  // TODO: Test
+  // TODO: Test this
   bool tokenTypeExists(String type) {
     return tokenTypes.containsKey(type.toUpperCase());
   }
