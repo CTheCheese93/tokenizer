@@ -3,15 +3,14 @@ import 'package:tokenizer/primitives.dart';
 import 'package:tokenizer/tokenizer.dart';
 
 class AlphaTokenizer implements Tokenizer {
-  
   @override
   ContentHandler contentHandler = ContentHandler();
 
   @override
-  TokenHandler tokenHandler = TokenHandler([]);
+  TokenHandler tokenHandler;
   
   @override
-  TokenTypeHandler tokenTypeHandler = TokenTypeHandler({});
+  TokenTypeHandler tokenTypeHandler;
 
   @override
   List<Token> tokenize(String content) {
@@ -20,9 +19,11 @@ class AlphaTokenizer implements Tokenizer {
     while(true) {
       try {
         String lookahead = contentHandler.lookahead();
-        Function? fnToCall = tokenTypeHandler.tokenFunction(TokenType(lookahead));
+        TokenType contentTokenType = tokenTypeHandler.getTokenTypeOfContent(lookahead);
+        // Should be checking what TokenType character should be
+        Function? fnToCall = tokenTypeHandler.tokenFunction(contentTokenType);
 
-        return fnToCall == null ? throw "TokenType for $lookahead does not exist in TypeChart" : fnToCall();
+        fnToCall == null ? throw "TokenType for $lookahead does not exist in TypeChart" : fnToCall(contentHandler, tokenTypeHandler, tokenHandler);
       } on RangeError {
         break;
       }
@@ -31,32 +32,99 @@ class AlphaTokenizer implements Tokenizer {
     return tokenHandler.tokens;
   }
 
-  AlphaTokenizer(this.contentHandler, this.tokenTypeHandler, this.tokenHandler);
+  AlphaTokenizer(this.tokenTypeHandler, this.tokenHandler);
 
 }
 
+Map<dynamic, TokenType> generateContentTokenMap(){
+  Map<dynamic, TokenType> map = {};
+  int i = 0;
+
+  while (i <= 127) {
+    if ((i >= "A".codeUnitAt(0) && i <= "Z".codeUnitAt(0))
+      || i >= "a".codeUnitAt(0) && i <= "z".codeUnitAt(0)) {
+
+      map[String.fromCharCode(i)] = TokenType("CHAR");
+
+      i++;
+      continue;
+    }
+    
+    if (i >= "0".codeUnitAt(0) && i <= "9".codeUnitAt(0)){
+
+      map[String.fromCharCode(i)] = TokenType("NUMBER");
+
+      i++;
+      continue;
+    }
+    
+    if ((i >= "!".codeUnitAt(0) && i <= "/".codeUnitAt(0))
+      || i >= ":".codeUnitAt(0) && i <= "@".codeUnitAt(0)
+      || i >= "[".codeUnitAt(0) && i <= "`".codeUnitAt(0)
+      || i >= "~".codeUnitAt(0) && i <= "~".codeUnitAt(0)) {
+
+      map[String.fromCharCode(i)] = TokenType("SYMBOL");
+
+      i++;
+      continue;
+    }
+
+    map[String.fromCharCode(i)] = TokenType("UNKNOWN");
+    i++;
+  }
+
+  return map;
+}
+
 void main() {
-  // TypeChart alphaTypeChart = TypeChart();
-  // TypeHandler alphaTypeHandler = TypeHandler({});
-  // TokenTypeHandler alphaTokenTypeHandler = TokenTypeHandler({});
-  // TokenHandler alphaTokenHandler = TokenHandler([]);
-  // ContentHandler alphaContentHandler = ContentHandler();
+  TokenTypeHandler alphaTokenTypeHandler = TokenTypeHandler({}, generateContentTokenMap());
+  TokenHandler alphaTokenHandler = TokenHandler([]);
 
-  // alphaTokenTypeHandler.addTokenType(TokenType("WORD"));
-  // alphaTokenTypeHandler.addTokenType(TokenType("EXPRESSION"));
-  // alphaTokenTypeHandler.addTokenType(TokenType("LINK"));
+  alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("WORD"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
+    String word = ch.getNextCharUntil(" ");
 
-  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["WORD"], () {
+    th.addToken(Token(TokenType("WORD"), word));
+  });
 
-  // });
+  alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("CHAR"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
+    // We know the first character in lookaheadwill be a CHAR, so we get the next one and isolate it
+    String laResult = ch.lookahead(size: 2)[1];
 
-  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["EXPRESSION"], () {
+    if (laResult.codeUnitAt(0) == " ".codeUnitAt(0)) {
+      th.addToken(Token(TokenType("CHAR"), ch.getNextChar()));
+      // Change TokenTypeHandler.tokenTypeExists to tokenTypeIsMapped
+      // Change TokenTypeHandler.contentAsKeyExists to contentIsMapped
+    } else if (tth.tokenTypeExists(TokenType("WORD"))){
+      tth.tokenFunction(TokenType("WORD"))!(ch, tth, th);
+    }
+  });
 
-  // });
+  alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("NUMBER"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
+    // We know the first character in lookaheadwill be a CHAR, so we get the next one and isolate it
+    String laResult = ch.lookahead(size: 2)[1];
 
-  // alphaTypeHandler.addHandlerFunction(alphaTokenTypeHandler.tokenTypes["LINK"], () {
+    if (laResult.codeUnitAt(0) == " ".codeUnitAt(0)) {
+      th.addToken(Token(TokenType("CHAR"), ch.getNextChar()));
+      // Change TokenTypeHandler.tokenTypeExists to tokenTypeIsMapped
+      // Change TokenTypeHandler.contentAsKeyExists to contentIsMapped
+    } else if (tth.tokenTypeExists(TokenType("WORD"))){
+      tth.tokenFunction(TokenType("WORD"))!(ch, tth, th);
+    }
+  });
 
-  // });
+  alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("SYMBOL"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
+    th.addToken(Token(TokenType("SYMBOL"), ch.getNextChar()));
+  });
+
+  alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("UNKNOWN"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
+    th.addToken(Token(TokenType("UNKNOWN"), ch.getNextChar()));
+  });
   
-  // AlphaTokenizer alphaTokenizer = AlphaTokenizer(alphaContentHandler, alphaTypeChart, alphaTypeHandler, alphaTokenHandler);
+  AlphaTokenizer alphaTokenizer = AlphaTokenizer(alphaTokenTypeHandler, alphaTokenHandler);
+
+  List<Token> results = alphaTokenizer.tokenize("A a bcd 123 ab3k 2 ! # * ( )");
+
+  for (Token token in results) {
+    print("${token.type.type}\t:\t${token.value}");
+  }
 }

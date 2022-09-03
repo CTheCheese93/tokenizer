@@ -10,7 +10,7 @@ void main() {
   group('TokenTypeHandler', () {
     TokenTypeHandler tokenTypeHandler = TokenTypeHandler({
       TokenType("TEST"): (){}
-    });
+    }, {});
   
     test('Can create TokenType of type CHAR', () {
       expect(TokenType("char").type, equals('CHAR'));
@@ -69,7 +69,7 @@ void main() {
 
 
   group('Token & TokenHandler', () {
-    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({});
+    TokenTypeHandler tokenTypeHandler = TokenTypeHandler({}, {});
     TokenHandler tokenHandler = TokenHandler([]);
 
     test("Can create a Token with type WORD with value of 'ABC'", () {

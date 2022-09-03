@@ -7,9 +7,15 @@ import 'package:tokenizer/exceptions.dart';
 
 class TokenTypeHandler {
   Map<TokenType, Function> _tthChart;
+  Map<dynamic, TokenType> _contentChart;
 
   bool tokenTypeExists(TokenType tokenType) {
     return _tthChart.containsKey(tokenType);
+  }
+
+  // TODO: Needs testing
+  bool contentAsKeyExists(dynamic content) {
+    return _contentChart.containsKey(content);
   }
 
   bool mapTokenTypeToFunction(TokenType tokenType, Function fn, {replace = false}) {
@@ -21,11 +27,29 @@ class TokenTypeHandler {
     return true;
   }
 
+  // TODO: Needs testing
+  bool mapContentToTokenType(dynamic content, TokenType tokenType) {
+    if(contentAsKeyExists(content)) {
+      return false;
+    }
+
+    _contentChart[content] = tokenType;
+    return true;
+  }
+
   Function? tokenFunction(TokenType tokenType){
       return _tthChart[tokenType];
   }
 
-  TokenTypeHandler(this._tthChart);
+  TokenType getTokenTypeOfContent(String content) {
+    if (contentAsKeyExists(content)) {
+      return _contentChart[content]!;
+    } else {
+      return TokenType("UKNOWN");
+    }
+  }
+  
+  TokenTypeHandler(this._tthChart, this._contentChart);
 }
 
 //
