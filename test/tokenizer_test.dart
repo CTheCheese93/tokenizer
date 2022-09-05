@@ -25,7 +25,7 @@ void main() {
     });
 
     test('Can successfully identify if TokenType exists as key', () {
-      expect(tokenTypeHandler.tokenTypeExists(TokenType("TEST")), equals(true));
+      expect(tokenTypeHandler.tokenTypeIsMapped(TokenType("TEST")), equals(true));
     });
 
     test('Can map TokenTypes to functions', () {
@@ -204,7 +204,7 @@ void main() {
         // Eat "("
         contentHandler.getNextChar();
         
-        result = contentHandler.lookaheadUntil(")");
+        result = contentHandler.lookaheadUntil([")"]);
 
         expect(result, equals("ABC"));
       }
@@ -219,7 +219,7 @@ void main() {
         // Eat "("
         contentHandler.getNextChar();
         
-        result = contentHandler.getNextCharUntil(")");
+        result = contentHandler.getNextCharUntil([")"]);
 
         expect(result, equals("ABC"));
         expect(contentHandler.lookahead(), equals(")"));

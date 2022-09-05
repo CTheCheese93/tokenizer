@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:tokenizer/handlers.dart';
 import 'package:tokenizer/primitives.dart';
 import 'package:tokenizer/tokenizer.dart';
@@ -81,7 +83,7 @@ void main() {
   TokenHandler alphaTokenHandler = TokenHandler([]);
 
   alphaTokenTypeHandler.mapTokenTypeToFunction(TokenType("WORD"), (ContentHandler ch, TokenTypeHandler tth, TokenHandler th){
-    String word = ch.getNextCharUntil(" ");
+    String word = ch.getNextCharUntil([" "]);
 
     th.addToken(Token(TokenType("WORD"), word));
   });
@@ -92,9 +94,7 @@ void main() {
 
     if (laResult.codeUnitAt(0) == " ".codeUnitAt(0)) {
       th.addToken(Token(TokenType("CHAR"), ch.getNextChar()));
-      // Change TokenTypeHandler.tokenTypeExists to tokenTypeIsMapped
-      // Change TokenTypeHandler.contentAsKeyExists to contentIsMapped
-    } else if (tth.tokenTypeExists(TokenType("WORD"))){
+    } else if (tth.tokenTypeIsMapped(TokenType("WORD"))){
       tth.tokenFunction(TokenType("WORD"))!(ch, tth, th);
     }
   });
@@ -105,9 +105,7 @@ void main() {
 
     if (laResult.codeUnitAt(0) == " ".codeUnitAt(0)) {
       th.addToken(Token(TokenType("CHAR"), ch.getNextChar()));
-      // Change TokenTypeHandler.tokenTypeExists to tokenTypeIsMapped
-      // Change TokenTypeHandler.contentAsKeyExists to contentIsMapped
-    } else if (tth.tokenTypeExists(TokenType("WORD"))){
+    } else if (tth.tokenTypeIsMapped(TokenType("WORD"))){
       tth.tokenFunction(TokenType("WORD"))!(ch, tth, th);
     }
   });
@@ -122,9 +120,22 @@ void main() {
   
   AlphaTokenizer alphaTokenizer = AlphaTokenizer(alphaTokenTypeHandler, alphaTokenHandler);
 
-  List<Token> results = alphaTokenizer.tokenize("A a bcd 123 ab3k 2 ! # * ( )");
+  while(true) {
+    String? content = stdin.readLineSync();
 
-  for (Token token in results) {
-    print("${token.type.type}\t:\t${token.value}");
+    if (content != null) {
+      List<Token> results = alphaTokenizer.tokenize(content);
+
+      print("==== TOKENIZE RESULTS ====");
+      for (Token token in results) {
+        print("${token.type.type}\t:\t${token.value}");
+      }
+      print("====  END OF RESULTS  ====");
+
+      // Fix handling resetting the charts
+      alphaTokenHandler.clearTokens(confirm: true);
+      alphaTokenizer.contentHandler.index = 0;
+    }
+
   }
 }

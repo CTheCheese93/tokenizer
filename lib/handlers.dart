@@ -9,17 +9,17 @@ class TokenTypeHandler {
   Map<TokenType, Function> _tthChart;
   Map<dynamic, TokenType> _contentChart;
 
-  bool tokenTypeExists(TokenType tokenType) {
+  bool tokenTypeIsMapped(TokenType tokenType) {
     return _tthChart.containsKey(tokenType);
   }
 
   // TODO: Needs testing
-  bool contentAsKeyExists(dynamic content) {
+  bool contentIsMapped(dynamic content) {
     return _contentChart.containsKey(content);
   }
 
   bool mapTokenTypeToFunction(TokenType tokenType, Function fn, {replace = false}) {
-    if (tokenTypeExists(tokenType) && replace == false) {
+    if (tokenTypeIsMapped(tokenType) && replace == false) {
       return false;
     }
 
@@ -29,7 +29,7 @@ class TokenTypeHandler {
 
   // TODO: Needs testing
   bool mapContentToTokenType(dynamic content, TokenType tokenType) {
-    if(contentAsKeyExists(content)) {
+    if(contentIsMapped(content)) {
       return false;
     }
 
@@ -42,7 +42,7 @@ class TokenTypeHandler {
   }
 
   TokenType getTokenTypeOfContent(String content) {
-    if (contentAsKeyExists(content)) {
+    if (contentIsMapped(content)) {
       return _contentChart[content]!;
     } else {
       return TokenType("UKNOWN");
@@ -161,20 +161,42 @@ class ContentHandler {
     }
   }
 
-  String lookaheadUntil(String char) {
+  // TODO: Needs to handle EOF type results
+  String lookaheadUntil(List<String> charList) {
     int size = 1;
     String lookaheadResult = lookahead();
 
+    bool charFound() {
+      for (String char in charList) {
+        if (lookaheadResult.endsWith(char)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    bool charNotTerminal() {
+      // Is the last character terminal?
+      switch(lookaheadResult[lookaheadResult.length-1].codeUnitAt(0)) {
+        case 13:   // CR
+        case 10:   // LF
+          return false;
+      }
+
+      return true;
+    }
+
     // Goes one further than what we actually need
-    while(!lookaheadResult.endsWith(char)) {
+    while(!charFound() && charNotTerminal()) {
       lookaheadResult = lookahead(size: ++size);
     }
 
     return lookaheadResult.substring(0, lookaheadResult.length - 1);
   }
 
-  String getNextCharUntil(String char) {
-    String lookaheadResult = lookaheadUntil(char);
+  String getNextCharUntil(List<String> charList) {
+    String lookaheadResult = lookaheadUntil(charList);
 
     return getNextChars(size: lookaheadResult.length);
   }
